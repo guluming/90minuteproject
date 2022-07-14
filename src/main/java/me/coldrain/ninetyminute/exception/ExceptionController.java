@@ -26,14 +26,14 @@ public class ExceptionController {
     @ExceptionHandler(AuthenticationException.class)
     @ResponseBody
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex){
-        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.UsernameOrPasswordNotFoundException.getCode(), ErrorCode.UsernameOrPasswordNotFoundException.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.USERNAME_OR_PASSWORD_NOTFOUND.getCode(), ErrorCode.USERNAME_OR_PASSWORD_NOTFOUND.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(HttpClientErrorException.Forbidden.class)
-    @ResponseBody
-    public ResponseEntity<ErrorResponse> handleForbiddenException(AuthenticationException ex){
-        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.ForbiddenException.getCode(), ErrorCode.ForbiddenException.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-    }
+//    @ExceptionHandler(HttpClientErrorException.Forbidden.class)
+//    @ResponseBody
+//    public ResponseEntity<ErrorResponse> handleForbiddenException(AuthenticationException ex){
+//        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.ForbiddenException.getCode(), ErrorCode.ForbiddenException.getMessage());
+//        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+//    }
 }

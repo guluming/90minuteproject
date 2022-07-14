@@ -2,15 +2,17 @@ package me.coldrain.ninetyminute.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.coldrain.ninetyminute.dto.request.*;
 import me.coldrain.ninetyminute.service.KakaoMemberService;
 import me.coldrain.ninetyminute.service.MemberService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/members")
@@ -37,11 +39,13 @@ public class MemberController {
     }
 
     //회원정보 수정
-    @PatchMapping("/{member_id}")
+    @PatchMapping(value = "/{member_id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> memberEdit(@PathVariable Long member_id,
-                                        @RequestPart(value = "profileimagefile", required = false) MultipartFile profileImageFile,
-                                        @RequestPart(value = "editmember") @Valid MemberEditRequest memberEditRequest) {
-        return memberService.memberEdit(member_id, profileImageFile, memberEditRequest);
+                                        MemberEditRequest memberEditRequest) {
+
+        log.info("memberEdit.memberEditRequest = {}", memberEditRequest);
+
+        return memberService.memberEdit(member_id, memberEditRequest);
     }
 
     //로그인

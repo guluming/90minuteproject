@@ -1,10 +1,12 @@
 package me.coldrain.ninetyminute.entity;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -53,6 +55,17 @@ public class Team extends TimeStamped {
 
     public void setQuestion(String question) {
         this.question = question;
+    }
+
+    public void modifyTeam(String teamImageFileUrl, String introduce, String mainArea, String preferredArea, List<String> weekdays, List<String> time) {
+        this.teamProfileUrl = teamImageFileUrl;
+        this.introduce = introduce;
+        this.mainArea = mainArea;
+        this.preferredArea = preferredArea;
+        this.weekdays = weekdays.stream().map(wd -> new Weekday(wd, this))
+                .collect(Collectors.toList());
+        this.timeList = time.stream().map(t -> new Time(t, this))
+                .collect(Collectors.toList());
     }
 
     public void addWeekday(Weekday weekday) {

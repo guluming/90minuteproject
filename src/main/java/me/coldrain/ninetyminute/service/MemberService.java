@@ -7,7 +7,6 @@ import me.coldrain.ninetyminute.dto.response.MemberDuplicateResponse;
 import me.coldrain.ninetyminute.entity.Ability;
 import me.coldrain.ninetyminute.entity.Member;
 import me.coldrain.ninetyminute.entity.MemberRoleEnum;
-import me.coldrain.ninetyminute.entity.Record;
 import me.coldrain.ninetyminute.exception.AuthenticationException;
 import me.coldrain.ninetyminute.exception.ErrorCode;
 import me.coldrain.ninetyminute.repository.AbilityRepository;
@@ -20,9 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.swing.plaf.synth.SynthOptionPaneUI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -85,23 +82,25 @@ public class MemberService {
 
     //회원정보 수정
     public ResponseEntity<?> memberEdit(Long member_id,
-                                        MultipartFile profileImageFile,
                                         MemberEditRequest memberEditRequest) {
         Member member = memberRepository.findById(member_id).orElseThrow(
                 () -> new NullPointerException("존재하지 않는 회원입니다."));
 
-        if (profileImageFile.isEmpty()) {
+        if (memberEditRequest.getProfileImageFile().isEmpty()) {
             Map<String, String> profileImg = new HashMap<>();
             profileImg.put("url", "/localhost:8080/basicprofileimage.png");
             profileImg.put("transImgFileName", "basicimage");
             member.memberUpdate(profileImg, memberEditRequest);
         } else {
-            if (member.getProfileName().equals("basicimage")) {
-                Map<String, String> profileImg = awsS3Service.uploadFile(profileImageFile);
+            if(member.getProfileName() == null) {
+                Map<String, String> profileImg = awsS3Service.uploadFile(memberEditRequest.getProfileImageFile());
+                member.memberUpdate(profileImg, memberEditRequest);
+            } else if (member.getProfileName().equals("basicimage")) {
+                Map<String, String> profileImg = awsS3Service.uploadFile(memberEditRequest.getProfileImageFile());
                 member.memberUpdate(profileImg, memberEditRequest);
             } else {
                 awsS3Service.deleteFile(member.getProfileName());
-                Map<String, String> profileImg = awsS3Service.uploadFile(profileImageFile);
+                Map<String, String> profileImg = awsS3Service.uploadFile(memberEditRequest.getProfileImageFile());
                 member.memberUpdate(profileImg, memberEditRequest);
             }
         }
@@ -114,7 +113,7 @@ public class MemberService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(memberLoginRequest.getEmail(), memberLoginRequest.getPassword()));
         } catch (Exception e) {
-            throw new AuthenticationException(ErrorCode.UsernameOrPasswordNotFoundException);
+            throw new AuthenticationException(ErrorCode.USERNAME_OR_PASSWORD_NOTFOUND);
         }
         Member member = memberRepository.findByUsername(memberLoginRequest.getEmail()).orElse(null);
         return new ResponseEntity<>(jwtTokenCreate(member), HttpStatus.CREATED);

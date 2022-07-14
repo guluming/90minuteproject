@@ -4,16 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.coldrain.ninetyminute.dto.TeamListSearch;
 import me.coldrain.ninetyminute.dto.TeamListSearchCondition;
-import me.coldrain.ninetyminute.dto.request.RecruitStartRequest;
-import me.coldrain.ninetyminute.dto.request.TeamParticipateRequest;
-import me.coldrain.ninetyminute.dto.request.TeamRegisterRequest;
+import me.coldrain.ninetyminute.dto.request.*;
 import me.coldrain.ninetyminute.dto.response.TeamParticipationQuestionResponse;
 import me.coldrain.ninetyminute.security.UserDetailsImpl;
 import me.coldrain.ninetyminute.service.ParticipationService;
 import me.coldrain.ninetyminute.service.TeamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -179,13 +176,14 @@ public class TeamController {
     @PostMapping("/home/teams/{team_id}/match/apply")
     public void applyMatch(
             final @PathVariable("team_id") Long teamId,
+            final @RequestBody ApplyRequest applyRequest,
             final @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         final Long applyTeamId = userDetails.getUser()
                 .getOpenTeam()
                 .getId();
 
-        teamService.applyMatch(applyTeamId, teamId);
+        teamService.applyMatch(applyTeamId, applyRequest, teamId);
     }
 
     /**
@@ -213,5 +211,16 @@ public class TeamController {
             final @PathVariable("team_id") Long teamId,
             final @PathVariable("member_id") Long memberId) {
         teamService.releaseTeamMember(teamId, memberId);
+
+     * Author: 상운
+     * 팀 수정 API
+     */
+    @PatchMapping("/home/teams/{team_id}")
+    public void modifyTeam(
+            final @PathVariable("team_id") Long teamId,
+            final @RequestBody TeamModifyRequest request,
+            final @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        teamService.modifyTeam(teamId, request, userDetails.getUser().getId());
     }
 }

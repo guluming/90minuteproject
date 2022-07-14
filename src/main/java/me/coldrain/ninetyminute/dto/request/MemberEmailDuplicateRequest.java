@@ -12,7 +12,7 @@ import javax.validation.constraints.Pattern;
 @NoArgsConstructor
 @ToString
 public class MemberEmailDuplicateRequest {
-    @Pattern(regexp = "^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\\\.[a-z]+$")
+    @Pattern(regexp = "^[a-zA-Z0-9]+@[a-zA-Z0-9]+.[a-z]+$")
     @NotBlank
     private String email;
 }

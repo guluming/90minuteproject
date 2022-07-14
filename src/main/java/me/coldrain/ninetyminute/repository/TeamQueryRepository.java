@@ -2,6 +2,7 @@ package me.coldrain.ninetyminute.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +37,8 @@ public class TeamQueryRepository {
             final TeamListSearchCondition searchCondition,
             final Pageable pageable) {
 
-        // TODO: 2022-07-09 검색 필터에 승률도 추가해야 함.
-        List<TeamListSearch> content = queryFactory.select(
+        List<TeamListSearch> content;
+        JPAQuery<TeamListSearch> query = queryFactory.select(
                         new QTeamListSearch(
                                 team.id,
                                 team.name,
@@ -64,20 +65,20 @@ public class TeamQueryRepository {
                         eqRecruit(searchCondition.getRecruit()) // 모집 상태
                 )
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(team.createdDate.desc())
-                .fetch();
+                .limit(pageable.getPageSize());
+//                .orderBy(team.createdDate.desc())
+//                .orderBy(getOrderSpecifier(pageable.getSort()).toArray(OrderSpecifier[]::new));
 
-        final Long total = queryFactory.select(team.count())
-                .from(team)
-                .where(containsIgnoreCaseTeamName(searchCondition.getTeamName()),   // 팀 이름
-                        containsAddress(searchCondition.getAddress()),  // 주소
-                        eqMatch(searchCondition.getMatch()),    // 대결 등록 상태
-                        eqRecruit(searchCondition.getRecruit()) // 모집 상태
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetchOne();
+        if (searchCondition.getWinRate() == null) {
+            content = query.orderBy(team.createdDate.desc())
+                    .fetch();
+        } else if (searchCondition.getWinRate().equals("desc")) {
+            content = query.orderBy(team.record.winRate.desc(), team.createdDate.desc())
+                    .fetch();
+        } else {
+            content = query.orderBy(team.record.winRate.asc(), team.createdDate.desc())
+                    .fetch();
+        }
 
         for (TeamListSearch c : content) {
             final List<String> weekdays = this.findWeekdaysByTeamId(c.getTeamId());
@@ -107,8 +108,8 @@ public class TeamQueryRepository {
             });
         }
 
-        content = new ArrayList<>(filteredContent);
-        return new PageImpl<>(content, pageable, total != null ? total : 0);
+        content = new ArrayList<>(filteredContent.isEmpty() ? content : filteredContent);
+        return new PageImpl<>(content, pageable, content.size());
     }
 
     private BooleanExpression eqMatch(Boolean match) {

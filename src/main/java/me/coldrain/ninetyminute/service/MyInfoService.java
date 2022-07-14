@@ -32,7 +32,7 @@ public class MyInfoService {
                 () -> new NullPointerException("등록된 사용자가 아닙니다."));
 
         MyInfoResponse myInfoResponse = new MyInfoResponse(
-                member.getNickname(), member.getContact(), member.getPhone(), member.getPosition(),
+                member.getNickname(), member.getProfileUrl(), member.getContact(), member.getPhone(), member.getPosition(),
                 member.getAbility().getMvpPoint(), 0, 0,
                 member.getAbility().getStrikerPoint(),
                 member.getAbility().getMidfielderPoint(),
@@ -46,41 +46,47 @@ public class MyInfoService {
     public ResponseEntity<?> myTeamGet(Long member_id) {
         List<MyParticipationTeamListResponse> myParticipationTeamListResponseList = new ArrayList<>();
 
-        Member member = memberRepository.findById(member_id).orElseThrow(() -> new NullPointerException("등록된 사용자가 아닙니다."));
-        if (member.getOpenTeam() != null) {
-            int headCount = participationRepository.findAllByTeamIdTrue(member.getOpenTeam().getId()).size() + 1;
+        try {
+            Member member = memberRepository.findById(member_id).orElseThrow();
 
-            List<String> openTeamWeekdays = new ArrayList<>();
-            List<Weekday> openTeamWeekdayList = weekdayRepository.findAllByTeamId(member.getOpenTeam().getId());
-            for (Weekday weekday : openTeamWeekdayList) {
-                openTeamWeekdays.add(weekday.getWeekday());
+            if (member.getOpenTeam() != null) {
+                int headCount = participationRepository.findAllByTeamId(member.getOpenTeam().getId()).size() + 1;
+
+                List<String> openTeamWeekdays = new ArrayList<>();
+                List<Weekday> openTeamWeekdayList = weekdayRepository.findAllByTeamId(member.getOpenTeam().getId());
+                for (Weekday weekday : openTeamWeekdayList) {
+                    openTeamWeekdays.add(weekday.getWeekday());
+                }
+
+                List<String> openTeamTimes = new ArrayList<>();
+                List<Time> openTeamTimeList = timeRepository.findAllByTeamId(member.getOpenTeam().getId());
+                for (Time time : openTeamTimeList) {
+                    openTeamTimes.add(time.getTime());
+                }
+
+                MyParticipationTeamListResponse myOpenTeamTeamResponse = new MyParticipationTeamListResponse(
+                        member.getOpenTeam().getId(),
+                        member.getOpenTeam().getName(),
+                        headCount,
+                        member.getOpenTeam().getMainArea(),
+                        member.getOpenTeam().getPreferredArea(),
+                        openTeamWeekdays,
+                        openTeamTimes,
+                        member.getOpenTeam().getRecord().getWinRate(),
+                        member.getOpenTeam().getRecruit(),
+                        member.getOpenTeam().getMatch(),
+                        member.getOpenTeam().getRecord().getTotalGameCount(),
+                        member.getOpenTeam().getRecord().getWinCount(),
+                        member.getOpenTeam().getRecord().getDrawCount(),
+                        member.getOpenTeam().getRecord().getLoseCount(),
+                        member.getOpenTeam().getCreatedDate(),
+                        member.getOpenTeam().getModifiedDate()
+                );
+                myParticipationTeamListResponseList.add(myOpenTeamTeamResponse);
+
             }
-
-            List<String> openTeamTimes = new ArrayList<>();
-            List<Time> openTeamTimeList = timeRepository.findAllByTeamId(member.getOpenTeam().getId());
-            for (Time time : openTeamTimeList) {
-                openTeamTimes.add(time.getTime());
-            }
-
-            MyParticipationTeamListResponse myOpenTeamTeamResponse = new MyParticipationTeamListResponse(
-                    member.getOpenTeam().getId(),
-                    member.getOpenTeam().getName(),
-                    headCount,
-                    member.getOpenTeam().getMainArea(),
-                    member.getOpenTeam().getPreferredArea(),
-                    openTeamWeekdays,
-                    openTeamTimes,
-                    member.getOpenTeam().getRecord().getWinRate(),
-                    member.getOpenTeam().getRecruit(),
-                    member.getOpenTeam().getMatch(),
-                    member.getOpenTeam().getRecord().getTotalGameCount(),
-                    member.getOpenTeam().getRecord().getWinCount(),
-                    member.getOpenTeam().getRecord().getDrawCount(),
-                    member.getOpenTeam().getRecord().getLoseCount(),
-                    member.getOpenTeam().getCreatedDate(),
-                    member.getOpenTeam().getModifiedDate()
-            );
-            myParticipationTeamListResponseList.add(myOpenTeamTeamResponse);
+        } catch (Exception e) {
+            return new ResponseEntity<>("등록되지 않은 사용자 입니다.", HttpStatus.BAD_REQUEST);
         }
 
         List<Participation> myTeamList = participationRepository.findAllByMemberIdTrue(member_id);

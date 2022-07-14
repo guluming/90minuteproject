@@ -45,7 +45,6 @@ public class JwtTokenProvider {
         headers.put("type", "token");
 
         Map<String, Object> payloads = new HashMap<>();
-//        payloads.put("username", member.getUsername());
         payloads.put("Role", member.getRole());
         payloads.put("nickname", member.getNickname());
 

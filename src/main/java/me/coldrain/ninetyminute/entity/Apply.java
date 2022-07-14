@@ -24,6 +24,10 @@ public class Apply extends TimeStamped {
     @JoinColumn(name = "team_id")
     private Team team;                  // 대결을 신청 받은 팀
 
+    @Column(name = "greeting")
+    @Lob
+    private String greeting;
+
     private Boolean approved;
 
     public void changeApproved(Boolean approved) {
@@ -31,9 +35,10 @@ public class Apply extends TimeStamped {
     }
 
     @Builder
-    public Apply(Team applyTeam, Team team, Boolean approved) {
+    public Apply(Team applyTeam, Team team, String greeting, Boolean approved) {
         this.applyTeam = applyTeam;
         this.team = team;
+        this.greeting = greeting;
         this.approved = approved;
     }
 }

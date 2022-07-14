@@ -3,15 +3,18 @@ package me.coldrain.ninetyminute.service;
 import lombok.RequiredArgsConstructor;
 import me.coldrain.ninetyminute.dto.TeamListSearch;
 import me.coldrain.ninetyminute.dto.TeamListSearchCondition;
+import me.coldrain.ninetyminute.dto.request.ApplyRequest;
 import me.coldrain.ninetyminute.dto.request.RecruitStartRequest;
+import me.coldrain.ninetyminute.dto.request.TeamModifyRequest;
 import me.coldrain.ninetyminute.dto.request.TeamRegisterRequest;
 import me.coldrain.ninetyminute.entity.*;
 import me.coldrain.ninetyminute.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +34,8 @@ public class TeamService {
 
     @Transactional
     public void registerTeam(final TeamRegisterRequest request, final Long memberId) {
-        //final Map<String, String> uploadFile = awsS3Service.uploadFile(request.getTeamImageFile());
-        //final String imageFileUrl = uploadFile.get("url"); // -> 버켓 생성 후 주석 풀기
+        final Map<String, String> uploadFile = awsS3Service.uploadFile(request.getTeamImageFile());
+        final String imageFileUrl = uploadFile.get("url");
 
         final Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
@@ -45,7 +48,7 @@ public class TeamService {
         final Record emptyRecord = recordRepository.save(new Record());
         final Team team = Team.builder()
                 .name(request.getTeamName())
-//                .teamProfileUrl(imageFileUrl) // -> 버켓 생성 후 주석 풀기
+                .teamProfileUrl(imageFileUrl)
                 .introduce(request.getIntroduce())
                 .mainArea(request.getMainArea())
                 .preferredArea(request.getPreferredArea())
@@ -173,7 +176,7 @@ public class TeamService {
     }
 
     @Transactional
-    public void applyMatch(final Long applyTeamId, final Long teamId) {
+    public void applyMatch(final Long applyTeamId, ApplyRequest applyRequest, final Long teamId) {
         final Team applyTeam = teamRepository.findById(applyTeamId)
                 .orElseThrow(() -> new IllegalArgumentException("대결 신청 팀을 찾을 수 없습니다."));
         final Team team = teamRepository.findById(teamId)
@@ -182,6 +185,7 @@ public class TeamService {
         final Apply apply = Apply.builder()
                 .applyTeam(applyTeam)
                 .team(team)
+                .greeting(applyRequest.getGreeting())
                 .approved(false)
                 .build();
 
@@ -204,5 +208,30 @@ public class TeamService {
         } catch (Exception e) {
             throw new NullPointerException("해당 회원은 팀원이 아닙니다.");
         }
+        
+    public void modifyTeam(final Long teamId, final TeamModifyRequest request, final Long id) {
+        final Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
+
+        // 기존 파일 삭제
+        awsS3Service.deleteFile(team.getTeamProfileUrl());
+
+        // 파일 신규 저장
+        final Map<String, String> uploadFile = awsS3Service.uploadFile(request.getTeamImageFile());
+
+        // 기존 weekdays, time 제거
+        weekdayRepository.findAllByTeamId(teamId)
+                        .forEach(wd -> weekdayRepository.deleteById(wd.getId()));
+        timeRepository.findAllByTeamId(teamId)
+                        .forEach(t -> timeRepository.deleteById(t.getId()));
+
+        team.modifyTeam(
+                uploadFile.get("url"),
+                request.getIntroduce(),
+                request.getMainArea(),
+                request.getPreferredArea(),
+                request.getWeekdays(),
+                request.getTime()
+        );
     }
 }

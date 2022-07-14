@@ -23,14 +23,14 @@ public class AuthenticationEntryPointHandler implements AuthenticationEntryPoint
 
         // 토큰이 없는 경우 예외처리
         if(exception == null) {
-            errorCode = ErrorCode.UNAUTHORIZEDException;
+            errorCode = ErrorCode.UNAUTHORIZED;
             setResponse(response, errorCode);
             return;
         }
 
         // 토큰이 만료된 경우 예외처리
         if(exception.equals("ExpiredJwtException")) {
-            errorCode = ErrorCode.ExpiredJwtException;
+            errorCode = ErrorCode.EXPIRED_JWT;
             setResponse(response, errorCode);
         }
     }
