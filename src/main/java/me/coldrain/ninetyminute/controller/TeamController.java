@@ -11,6 +11,7 @@ import me.coldrain.ninetyminute.service.ParticipationService;
 import me.coldrain.ninetyminute.service.TeamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class TeamController {
      * 팀 목록 조회 API
      */
     @GetMapping("/home/teams")
-    public Page<TeamListSearch> selectTeams(
+    public Slice<TeamListSearch> selectTeams(
             final TeamListSearchCondition searchCondition,
             final Pageable pageable) {
 

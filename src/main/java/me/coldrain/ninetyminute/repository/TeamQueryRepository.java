@@ -11,9 +11,7 @@ import me.coldrain.ninetyminute.dto.TeamListSearch;
 import me.coldrain.ninetyminute.dto.TeamListSearchCondition;
 import me.coldrain.ninetyminute.entity.Time;
 import me.coldrain.ninetyminute.entity.Weekday;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -33,7 +31,7 @@ public class TeamQueryRepository {
     private final WeekdayRepository weekdayRepository;
     private final TimeRepository timeRepository;
 
-    public Page<TeamListSearch> findAllTeamListSearch(
+    public Slice<TeamListSearch> findAllTeamListSearch(
             final TeamListSearchCondition searchCondition,
             final Pageable pageable) {
 
@@ -65,9 +63,7 @@ public class TeamQueryRepository {
                         eqRecruit(searchCondition.getRecruit()) // 모집 상태
                 )
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
-//                .orderBy(team.createdDate.desc())
-//                .orderBy(getOrderSpecifier(pageable.getSort()).toArray(OrderSpecifier[]::new));
+                .limit(pageable.getPageSize() + 1); // limit 보다 데이터를 1개 더 들고와서, 해당 데이터가 있다면 hasNext 변수에 true를 넣어서 알린다.
 
         if (searchCondition.getWinRate() == null) {
             content = query.orderBy(team.createdDate.desc())
@@ -108,8 +104,15 @@ public class TeamQueryRepository {
             });
         }
 
+        boolean hasNext = false;
+        if (content.size() > pageable.getPageSize()) {
+            content.remove(pageable.getPageSize());
+            hasNext = true;
+        }
+
         content = new ArrayList<>(filteredContent.isEmpty() ? content : filteredContent);
-        return new PageImpl<>(content, pageable, content.size());
+        return new SliceImpl<>(content, pageable, hasNext);
+//        return new PageImpl<>(content, pageable, content.size());
     }
 
     private BooleanExpression eqMatch(Boolean match) {

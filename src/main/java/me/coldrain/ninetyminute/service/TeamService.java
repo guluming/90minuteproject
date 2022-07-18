@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +43,11 @@ public class TeamService {
 
     @Transactional
     public void registerTeam(final TeamRegisterRequest request, final Long memberId) {
-        final Map<String, String> uploadFile = awsS3Service.uploadFile(request.getTeamImageFile());
-        final String imageFileUrl = uploadFile.get("url");
+        String imageFileUrl = null;
+        if (request.getTeamImageFile() != null && !request.getTeamImageFile().isEmpty()) {
+            Map<String, String> uploadFile = awsS3Service.uploadFile(request.getTeamImageFile());
+            imageFileUrl = uploadFile.get("url");
+        }
 
         final Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
@@ -178,7 +182,7 @@ public class TeamService {
         return new ResponseEntity<>(teamInfoResponse, HttpStatus.OK);
     }
 
-    public Page<TeamListSearch> searchTeamList(final TeamListSearchCondition searchCondition, final Pageable pageable) {
+    public Slice<TeamListSearch> searchTeamList(final TeamListSearchCondition searchCondition, final Pageable pageable) {
         return teamQueryRepository.findAllTeamListSearch(searchCondition, pageable);
     }
 

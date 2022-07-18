@@ -11,8 +11,6 @@ import me.coldrain.ninetyminute.repository.TeamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,6 +29,10 @@ public class ParticipationService {
         final Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("참여하려는 팀이 존재하지 않습니다."));
 
+        if (team.getRecruit().equals(false)) {
+            throw new IllegalArgumentException("팀원을 모집 중인 상태가 아닙니다.");
+        }
+
         final boolean present = participationRepository.findByTeamIdAndMemberId(teamId, member.getId()).isPresent();
         if (present) {
             throw new IllegalArgumentException("이미 참여신청을 했습니다.");
@@ -48,12 +50,21 @@ public class ParticipationService {
 
     @Transactional
     public void approve(final Long teamId, final Long memberId, final Member member) {
+        teamRepository.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("팀이 존재하지 않습니다."));
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
         final Participation participation = participationRepository.findByTeamIdAndMemberId(teamId, memberId)
                 .orElseThrow(() -> new IllegalArgumentException("참여 이력이 존재하지 않습니다."));
 
         final Long openTeamId = member.getOpenTeam().getId();
         if (!openTeamId.equals(teamId)) {
             throw new IllegalArgumentException("팀 개설자만 참여 승인을 할 수 있습니다.");
+        }
+
+        if (participation.getApproved().equals(true)) {
+            throw new IllegalArgumentException("이미 승인된 회원입니다.");
         }
 
         participation.changeApproved(true);
