@@ -27,4 +27,7 @@ public interface FieldMemberRepository extends JpaRepository<FieldMember, Long> 
 
     @Query("select fm from FieldMember fm where fm.member.id = :MemberId")
     List<FieldMember> findAllByGameFieldMembers(Long MemberId);
+
+    @Query("select fm.member.id from FieldMember fm where fm.team.id = :teamId and fm.beforeMatching.id = :beforeMatchId and fm.anonymous = false")
+    List<Long> findAllMemberIdOfFieldMembers(Long teamId, Long beforeMatchId);
 }

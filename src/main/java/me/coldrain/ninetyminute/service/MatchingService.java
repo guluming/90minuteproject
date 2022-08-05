@@ -5,10 +5,7 @@ import me.coldrain.ninetyminute.dto.request.ApprovedMatchRequest;
 import me.coldrain.ninetyminute.dto.request.MatchMemberRequest;
 import me.coldrain.ninetyminute.dto.request.MatchResultRequest;
 import me.coldrain.ninetyminute.dto.request.MatchScoreRequest;
-import me.coldrain.ninetyminute.dto.response.MatchMemberResponse;
-import me.coldrain.ninetyminute.dto.response.MatchResponse;
-import me.coldrain.ninetyminute.dto.response.OfferMatchResponse;
-import me.coldrain.ninetyminute.dto.response.ParticipationTeamMatchResponse;
+import me.coldrain.ninetyminute.dto.response.*;
 import me.coldrain.ninetyminute.entity.*;
 import me.coldrain.ninetyminute.repository.*;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -354,8 +351,25 @@ public class MatchingService {
         } else throw new IllegalArgumentException("해당 팀의 주장이 아닙니다.");
     }
 
+    public MatchScoreResponse showMatchScore(Long matchId, Member member) {
+        BeforeMatching beforeMatching = beforeMatchingRepository.findByBeforeMatchingId(matchId).orElseThrow(
+                () -> new IllegalArgumentException("해당 대결을 찾지 못했거나 대결 팀 중 한팀이 해체되었습니다."));
+        if (member.getOpenTeam().getId().equals(beforeMatching.getApply().getTeam().getId()) || member.getOpenTeam().getId().equals(beforeMatching.getApply().getApplyTeam().getId())) {
+            AfterMatching afterMatching = afterMatchingRepository.findByBeforeMatchingIdAdmitStatusFalse(matchId).orElseThrow(
+                    () -> new IllegalArgumentException("해당 대결을 찾을 수 없습니다.")
+            );
+            return MatchScoreResponse.builder()
+                    .matchId(matchId)
+                    .teamId(beforeMatching.getApply().getTeam().getId())
+                    .opponentTeamId(beforeMatching.getApply().getApplyTeam().getId())
+                    .teamScore(afterMatching.getScore())
+                    .opponentTeamScore(afterMatching.getOpponentScore())
+                    .build();
+        } else throw new IllegalArgumentException("해당 팀의 주장이 아닙니다.");
+    }
+
     @Transactional
-    public void confirmMatchScore(Long matchId, Member member) {
+    public MatchScoreResponse confirmMatchScore(Long matchId, Member member) {
         BeforeMatching beforeMatching = beforeMatchingRepository.findByBeforeMatchingId(matchId).orElseThrow(
                 () -> new IllegalArgumentException("해당 대결을 찾지 못했거나 대결 팀 중 한팀이 해체되었습니다."));
         if (member.getOpenTeam().getId().equals(beforeMatching.getApply().getTeam().getId()) || member.getOpenTeam().getId().equals(beforeMatching.getApply().getApplyTeam().getId())) {
@@ -363,18 +377,32 @@ public class MatchingService {
                     () -> new IllegalArgumentException("해당 대결을 찾을 수 없습니다.")
             );
             afterMatching.changeAdmitStatus(true);
+            return MatchScoreResponse.builder()
+                    .matchId(matchId)
+                    .teamId(beforeMatching.getApply().getTeam().getId())
+                    .opponentTeamId(beforeMatching.getApply().getApplyTeam().getId())
+                    .teamScore(afterMatching.getScore())
+                    .opponentTeamScore(afterMatching.getOpponentScore())
+                    .build();
         } else throw new IllegalArgumentException("해당 팀의 주장이 아닙니다.");
     }
 
     @Transactional
-    public void correctMatchScore(Long matchId, MatchScoreRequest matchScoreRequest, Member member) {
+    public MatchScoreResponse correctMatchScore(Long matchId, MatchScoreRequest matchScoreRequest, Member member) {
         BeforeMatching beforeMatching = beforeMatchingRepository.findByBeforeMatchingId(matchId).orElseThrow(
                 () -> new IllegalArgumentException("해당 대결을 찾지 못했거나 대결 팀 중 한팀이 해체되었습니다."));
-        if (member.getOpenTeam().getId().equals(beforeMatching.getApply().getApplyTeam().getId())) {
+        if (member.getOpenTeam().getId().equals(beforeMatching.getApply().getTeam().getId()) || member.getOpenTeam().getId().equals(beforeMatching.getApply().getApplyTeam().getId())) {
             AfterMatching afterMatching = afterMatchingRepository.findByBeforeMatchingIdAdmitStatusFalse(matchId).orElseThrow(
                     () -> new IllegalArgumentException("해댱 대결을 찾을 수 없습니다.")
             );
             afterMatching.correctScore(matchScoreRequest.getTeamScore(), matchScoreRequest.getOpponentScore());
+            return MatchScoreResponse.builder()
+                    .matchId(matchId)
+                    .teamId(beforeMatching.getApply().getTeam().getId())
+                    .opponentTeamId(beforeMatching.getApply().getApplyTeam().getId())
+                    .teamScore(matchScoreRequest.getTeamScore())
+                    .opponentTeamScore(matchScoreRequest.getOpponentScore())
+                    .build();
         } else throw new IllegalArgumentException("해당 팀의 주장이 아닙니다.");
     }
 
@@ -591,6 +619,8 @@ public class MatchingService {
                 break;
             case "goalkeeper":
                 substituteMember.getMember().getAbility().updateGoalkeeperPoint();
+                break;
+            default:
                 break;
         }
     }

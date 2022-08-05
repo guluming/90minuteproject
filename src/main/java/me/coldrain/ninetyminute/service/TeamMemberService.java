@@ -1,18 +1,19 @@
 package me.coldrain.ninetyminute.service;
 
 import lombok.RequiredArgsConstructor;
+import me.coldrain.ninetyminute.dto.response.ParticipatedTeamMemberResponse;
 import me.coldrain.ninetyminute.dto.response.TeamMemberOfferResponse;
 import me.coldrain.ninetyminute.dto.response.TeamMemberResponse;
+import me.coldrain.ninetyminute.entity.BeforeMatching;
 import me.coldrain.ninetyminute.entity.Member;
 import me.coldrain.ninetyminute.entity.Participation;
 import me.coldrain.ninetyminute.entity.Team;
-import me.coldrain.ninetyminute.repository.MemberRepository;
-import me.coldrain.ninetyminute.repository.ParticipationRepository;
-import me.coldrain.ninetyminute.repository.TeamRepository;
+import me.coldrain.ninetyminute.repository.*;
 import me.coldrain.ninetyminute.security.UserDetailsImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,8 @@ public class TeamMemberService {
     private final ParticipationRepository participationRepository;
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
+    private final BeforeMatchingRepository beforeMatchingRepository;
+    private final FieldMemberRepository fieldMemberRepository;
 
     //팀 멤버 조회
     public ResponseEntity<?> teamMemberGet(Long teamId, Long memberId) {
@@ -158,5 +161,27 @@ public class TeamMemberService {
         } else {
             return new ResponseEntity<>("해당 팀의 개설자가 아닙니다.", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public ParticipatedTeamMemberResponse searchSubstituteMember(Long matchId, Member member) {
+        BeforeMatching beforeMatching = beforeMatchingRepository.findByBeforeMatchingId(matchId).orElseThrow(
+                () -> new IllegalArgumentException("해당 대결을 찾지 못했거나 대결 팀 중 한팀이 해체되었습니다."));
+        List<Long> fieldMembers = fieldMemberRepository.findAllMemberIdOfFieldMembers(member.getOpenTeam().getId(), matchId);
+        List<Member> substituteMembers = participationRepository.findAllMembers(member.getOpenTeam().getId(), fieldMembers);
+        List<ParticipatedTeamMemberResponse.TeamMember> teamMembers = new ArrayList<>();
+        for (Member teamMember : substituteMembers) {
+            ParticipatedTeamMemberResponse.TeamMember temp = ParticipatedTeamMemberResponse.TeamMember.builder()
+                    .memberId(teamMember.getId())
+                    .memberProfileUrl(teamMember.getProfileUrl())
+                    .nickName(teamMember.getNickname())
+                    .build();
+            teamMembers.add(temp);
+        }
+        return ParticipatedTeamMemberResponse.builder()
+                .matchId(matchId)
+                .teamId(member.getOpenTeam().getId())
+                .teamMemberList(teamMembers)
+                .build();
     }
 }

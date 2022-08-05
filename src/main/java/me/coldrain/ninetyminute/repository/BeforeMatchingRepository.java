@@ -26,7 +26,7 @@ public interface BeforeMatchingRepository extends JpaRepository<BeforeMatching, 
     @Query("select bm from BeforeMatching bm where bm.apply.id = :applyId and bm.apply.team.deleted = false and bm.apply.applyTeam.deleted = false ")
     Optional<BeforeMatching> findByApplyId(final Long applyId);
 
-    @Query("select bm from BeforeMatching bm where bm.apply.team.id = :teamId or bm.apply.applyTeam.id = :teamId and bm.apply.team.deleted = false and bm.apply.applyTeam.deleted = false and bm.apply.approved = true and bm.apply.endMatchStatus = false and bm.apply.opposingTeamEndMatchStatus = false order by bm.matchDate desc ")
+    @Query("select bm from BeforeMatching bm where (bm.apply.team.id = :teamId or bm.apply.applyTeam.id = :teamId) and bm.apply.team.deleted = false and bm.apply.applyTeam.deleted = false and bm.apply.approved = true and bm.apply.endMatchStatus = false and bm.apply.opposingTeamEndMatchStatus = false order by bm.matchDate desc ")
     List<BeforeMatching> findAllMatches(final Long teamId);
 
     @Query("select bm from BeforeMatching bm where bm.id = :beforeMatchingId and bm.apply.team.deleted = false and bm.apply.applyTeam.deleted = false")

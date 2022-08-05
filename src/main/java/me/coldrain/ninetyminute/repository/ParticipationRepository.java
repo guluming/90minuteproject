@@ -39,4 +39,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     @Query("SELECT p.member FROM Participation p WHERE p.team.id = :teamId AND p.approved = true AND p.team.deleted = false")
     List<Member> findAllTeamMembers(final Long teamId);
+
+    @Query("select p.member from Participation p where p.team.id = :teamId and not p.member.id in :fieldMembers and p.approved = true")
+    List<Member> findAllMembers(Long teamId, List<Long> fieldMembers);
 }

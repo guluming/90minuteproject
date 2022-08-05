@@ -10,11 +10,13 @@ import java.util.List;
 @NoArgsConstructor
 public class ParticipatedTeamMemberResponse {
 
+    private Long matchId;
     private Long teamId;
     private List<TeamMember> teamMemberList;
 
     @Builder
-    public ParticipatedTeamMemberResponse(Long teamId, List<TeamMember> teamMemberList) {
+    public ParticipatedTeamMemberResponse(Long matchId, Long teamId, List<TeamMember> teamMemberList) {
+        this.matchId = matchId;
         this.teamId = teamId;
         this.teamMemberList = teamMemberList;
     }
@@ -23,11 +25,13 @@ public class ParticipatedTeamMemberResponse {
     @NoArgsConstructor
     public static class TeamMember {
         private Long memberId;
+        private String memberProfileUrl;
         private String nickName;
 
         @Builder
-        public TeamMember(Long memberId, String nickName) {
+        public TeamMember(Long memberId, String memberProfileUrl, String nickName) {
             this.memberId = memberId;
+            this.memberProfileUrl = memberProfileUrl;
             this.nickName = nickName;
         }
 

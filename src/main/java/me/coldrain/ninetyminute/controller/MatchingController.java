@@ -1,15 +1,13 @@
 package me.coldrain.ninetyminute.controller;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.coldrain.ninetyminute.dto.request.ApprovedMatchRequest;
 import me.coldrain.ninetyminute.dto.request.MatchResultRequest;
 import me.coldrain.ninetyminute.dto.request.MatchScoreRequest;
 import me.coldrain.ninetyminute.dto.request.MatchMemberRequest;
-import me.coldrain.ninetyminute.dto.response.MatchMemberResponse;
-import me.coldrain.ninetyminute.dto.response.OfferMatchResponse;
-import me.coldrain.ninetyminute.dto.response.MatchResponse;
-import me.coldrain.ninetyminute.dto.response.ParticipationTeamMatchResponse;
+import me.coldrain.ninetyminute.dto.response.*;
 import me.coldrain.ninetyminute.security.UserDetailsImpl;
 import me.coldrain.ninetyminute.service.MatchingService;
 import org.springframework.http.HttpStatus;
@@ -180,16 +178,29 @@ public class MatchingController {
 
     /*
      * Author: 병민
+     * 상대팀 대결 결과 점수 조회 API
+     * 상대방이 입력한 점수를 확인 하기 위한 API
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/matches/{match_id}/score")
+    public MatchScoreResponse showMatchScore(
+            @PathVariable("match_id") Long matchId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return matchingService.showMatchScore(matchId, userDetails.getUser());
+    }
+
+    /*
+     * Author: 병민
      * 상대팀 대결 결과 점수 정정 API
      * 대결 점수 정정 API
      */
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/matches/{match_id}/score")
-    public void correctMatchScore(
+    public MatchScoreResponse correctMatchScore(
             final @PathVariable("match_id") Long matchId,
             final @RequestBody MatchScoreRequest matchScoreRequest,
             final @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        matchingService.correctMatchScore(matchId, matchScoreRequest, userDetails.getUser());
+        return matchingService.correctMatchScore(matchId, matchScoreRequest, userDetails.getUser());
     }
 
     /*
@@ -199,10 +210,10 @@ public class MatchingController {
      */
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/matches/{match_id}/score/admit")
-    public void confirmMatchScore(
+    public MatchScoreResponse confirmMatchScore(
             final @PathVariable("match_id") Long matchId,
             final @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        matchingService.confirmMatchScore(matchId, userDetails.getUser());
+        return matchingService.confirmMatchScore(matchId, userDetails.getUser());
     }
 
     /*

@@ -26,6 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://homework99.s3-website.ap-northeast-2.amazonaws.com/",
                         "https://fe-k4dakxscw-90bun.vercel.app/",
                         "https://fe-90bun.vercel.app",
+                        "https://www.ninety.site",
                         "https://localhost:3000",
                         "http://localhost:3000")
                 .allowedMethods("POST", "GET","PATCH", "DELETE", "HEAD", "OPTIONS")
