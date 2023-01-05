@@ -1,8 +1,8 @@
 # ⚽ 축구팀 매칭 플랫폼 [90분]
 <a href = "https://www.ninety.site/">![image](https://user-images.githubusercontent.com/105046055/182977241-f6c3d9f6-981f-4766-8b0e-179fe6776f22.png)
-<a href = "https://www.ninety.site/">> 사이트 바로가기<br>
+//<a href = "https://www.ninety.site/">> 사이트 바로가기<br>
 <a href = "https://nasal-peony-253.notion.site/90-64b09693ce5f45bc8b3a14f13f579120">> 서비스 소개 바로가기<br>
-<a href = "https://youtu.be/QC6GeZKvQvI">> 발표 영상 바로가기<br>
+//<a href = "https://youtu.be/QC6GeZKvQvI">> 발표 영상 바로가기<br>
 <a href = "https://github.com/me-coldrain/FE">> 프론트 엔드 Github 바로가기<br>
 <a href = "https://github.com/me-coldrain/BE">> 백엔드 Github 바로가기<br>
 <a href = "https://undefined-374.gitbook.io/api-docs/">> API 명세서 바로가기(Gitbook API Docs)<br><br><br>
